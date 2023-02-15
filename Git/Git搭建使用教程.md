@@ -35,6 +35,14 @@ git config --global user.email "email@example.com"
 git init
 ```
 
+- 远端仓库绑定
+
+```
+git remote add + 名字 + 连接地址
+git remote -v
+git remote remove origin
+```
+
 - 仓库克隆
 
 ```
@@ -65,7 +73,7 @@ git add -A，提交所有变化。
 - 拉取
 
 ```
-git pull 仓库名称
+git pull 仓库名称 分支
 git fetch + git merge
 ```
 
