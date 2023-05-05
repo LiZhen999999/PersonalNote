@@ -33,6 +33,84 @@
 
 2. ##### 返回值为基本参数的Invoke
 
-3. ##### 输入信息为基本参数的XML请求
+   - 源码文件：WebserviceInvoker.cs
 
-##### 
+   - 详细解释：InvokeWebService详解.md
+
+   - 优势：调用、转化结果均简单；无需创建对应结构的实体类对象；
+
+   - 限制：在结果为基本类型的转换中才方便使用；
+
+   - 调用示例：
+
+     ```C#
+     //各个参数按逗号隔开
+     object obj = WebserviceInvoker.InvokeWebService(
+         "http://szspmqas.ptn.gwkf.cn/ToolingSystem/ShelfSystem/PositionOperate.asmx", 
+         null, "CheckIRKitFree", new object[] { "" });
+     ```
+
+   - 结果转换：
+
+     ```C#
+     //简单类型转换
+     string sResult = obj.ToString();
+     
+     //通过反射转换实体对象
+     bool Flag = false;
+     string message = "";
+     DataTable Dt_IRKIT = new DataTable();
+     
+     object obj = webService.InvokeWebService(sUrl+"/GetIRKITInfo.asmx", "GetIRKITInformation", new object[] {"IR KIT"});
+     
+     Type t = obj.GetType();
+     FieldInfo[] fieldInfos = t.GetFields();
+     
+     
+     for( int i =0; i< fieldInfos.Length; i++)
+     {
+         if (fieldInfos[i].Name == "Flag")
+             Flag = (bool)fieldInfos[i].GetValue(obj);
+         else if(fieldInfos[i].Name == "message")
+             message = (string)fieldInfos[i].GetValue(obj);
+         else if (fieldInfos[i].Name == "Dt_IRKIT")
+             Dt_IRKIT = (DataTable)fieldInfos[i].GetValue(obj);
+     }
+     ```
+
+   
+
+3. ##### XML解析
+
+   - 源码文件：Soap_XMLWebserviceEx.cs
+
+   - 解释：适用于SOAP协议webservice的请求方式，通过提交XML格式的数据以及对于XML格式数据的解析；
+
+   - 优势：非常适用于SOAP协议下结果对象为复杂对象（非基本类型的情况）；
+
+   - 限制：仅适用于SOAP协议下的webservice调用、请求体仍为基本类型；
+
+   - 调用示例：
+
+     ```C#
+     var url = $"http://szaresweb.ptn.gwkf.cn/Ares/WebServices/Tooling/AresBaseInfoQuery.asmx";
+     var method = "QueryMachineInforMation";
+     var keyValues = new Dictionary<string, string>();
+     var webService = new WebServiceCall(url);
+     XmlDocument xmlDoc = new XmlDocument();
+     xmlDoc.Load(new StringReader(webService.callWebService(method, keyValues)));
+     var resMsg = xmlDoc.InnerXml.ToString();
+     ```
+
+   - 结果转换：
+
+     ```C#
+     //可以利用VS自带的XML转换成类的方式生成类
+     var xmlSearializer = new XmlSerializer(typeof(Envelope));
+     using (Stream xmlStream = new MemoryStream(Encoding.UTF8.GetBytes(resMsg)))
+     {
+         var model = xmlSearializer.Deserialize(xmlStream) as Envelope;
+         QueryMachineInforMationResponseQueryMachineInforMationResultMachineInfoItems k = 		model.Body.QueryMachineInforMationResponse.QueryMachineInforMationResult.data[0];
+     }
+     ```
+
